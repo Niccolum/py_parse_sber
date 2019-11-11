@@ -22,11 +22,29 @@ from utils import (
     currency_converter)
 
 
-class BankAccountAbstract(AbstractSberbankAccount):
+class AbstractSberbankAccount(AbstractAccount):
+
+    @classmethod
+    def _account_parser(cls, raw_account: WebElement) -> Type[AbstractAccount]:
+        name = raw_account.find_element(By.XPATH, './/span[contains(@class, "titleBlock")]').get_attribute('title')
+
+        url = raw_account.find_element(By.XPATH, './/div[contains(@class, "pruductImg")]/a').get_attribute("href")
+        account_id = get_query_attr(url, 'id')
+
+        raw_funds = raw_account.find_element(By.XPATH, './/span[contains(@class, "overallAmount")]').text
+        raw_funds, raw_currency = raw_funds.rsplit(' ', 1)
+
+        # prepare parsed data
+        currency = currency_converter(raw_currency)
+        funds = replace_formatter(raw_funds, delete_symbols=' ', custom={',': '.'})
+        return cls(name=name, funds=funds, currency=currency, account_id=account_id)
+
+
+class BankAccount(AbstractSberbankAccount):
     acc_type = 'account'
 
 
-class CardAccountAbstract(AbstractSberbankAccount):
+class CardAccount(AbstractSberbankAccount):
     acc_type = 'card'
 
 
@@ -57,12 +75,12 @@ class SberbankProcessedTransaction(AbstractProcessedTransaction):
 
         while True:
             curr_day_transactions = []
-            prev_transaction_data = cls.transaction_time_parse('Сегодня')
+            prev_transaction_data = cls._transaction_time_parse('Сегодня')
             print('current date:', prev_transaction_data)
 
             for transaction_el in transactions_table.find_elements(By.XPATH, ".//tr[contains(@class, 'ListLine')]"):
                 raw_info = [i.text for i in transaction_el.find_elements(By.XPATH, "./td")]
-                curr_transaction_date = cls.transaction_time_parse(raw_info[3])
+                curr_transaction_date = cls._transaction_time_parse(raw_info[3])
                 raw_cost, raw_currency = raw_info[4].rsplit(' ', 1)
 
                 raw_transaction = {
@@ -91,18 +109,18 @@ class SberbankProcessedTransaction(AbstractProcessedTransaction):
                     button = paginator_next.find_element(By.XPATH, ".//div[contains(@class, 'activePaginRightArrow')]")
 
                     if button.get_attribute('class').startswith('inactive'):
-                        yield from cls.add_custom_unique_tr_id(curr_day_transactions)
+                        yield from cls._add_custom_unique_tr_id(curr_day_transactions)
                         break
 
                     button.click()
                     transactions_table = WebDriverWait(driver, TIMEOUT).until(
                         EC.presence_of_element_located((By.ID, 'simpleTable0')))
             else:
-                yield from cls.add_custom_unique_tr_id(curr_day_transactions)
+                yield from cls._add_custom_unique_tr_id(curr_day_transactions)
                 break
 
     @classmethod
-    def add_custom_unique_tr_id(cls, raw_tr_list: Iterator[Dict[str, str]]) -> Transaction:
+    def _add_custom_unique_tr_id(cls, raw_tr_list: Iterator[Dict[str, str]]) -> Transaction:
         print('return current day transactions')
         for order_id, curr_day_raw_tr in enumerate(reversed(raw_tr_list), 1):
             curr_day_raw_tr['order_id'] = order_id
@@ -111,7 +129,7 @@ class SberbankProcessedTransaction(AbstractProcessedTransaction):
             yield cls(**raw_tr).transaction
 
     @staticmethod
-    def transaction_time_parse(raw_time: str) -> str:
+    def _transaction_time_parse(raw_time: str) -> str:
         if raw_time == 'Сегодня':
             time = datetime.date.today()
         elif raw_time == 'Вчера':
@@ -157,7 +175,7 @@ class SberbankClientParser(AbstractClientParser):
         self.main_menu_link = self.driver.current_url
 
     @check_authorization
-    def account_page_parser(self, text: str, account: Type[AbstractSberbankAccount]) -> None:
+    def _account_page_parser(self, text: str, account: Type[AbstractSberbankAccount]) -> None:
         # go to main page
         self.driver.get(self.main_menu_link)
 
@@ -168,21 +186,25 @@ class SberbankClientParser(AbstractClientParser):
         # get info about every funds
         raw_accounts = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'productCover')]")
         for raw_account in raw_accounts:
-            parsed_account = account.account_parser(raw_account)
+            parsed_account = account._account_parser(raw_account)
             self._container[parsed_account] = []
 
-    def account_page_parser_BankAccount(self) -> None:
+    def __account_page_parser_BankAccount(self) -> None:
         text = 'Все вклады и счета'
-        account = BankAccountAbstract
-        self.account_page_parser(text=text, account=account)
+        account = BankAccount
+        self._account_page_parser(text=text, account=account)
 
-    def account_page_parser_CardAccount(self) -> None:
+    def __account_page_parser_CardAccount(self) -> None:
         text = 'Все карты'
-        account = CardAccountAbstract
-        self.account_page_parser(text=text, account=account)
+        account = CardAccount
+        self._account_page_parser(text=text, account=account)
+
+    def account_page_parser(self) -> None:
+        self.__account_page_parser_BankAccount()
+        self.__account_page_parser_CardAccount()
 
     @check_authorization
-    def transaction_page_parser(self, interval: int) -> None:
+    def transaction_page_parser(self) -> None:
         # go to main page
         self.driver.get(self.main_menu_link)
 
@@ -194,14 +216,15 @@ class SberbankClientParser(AbstractClientParser):
         self.wait_click_redirect(link)
 
         for account in self._container.keys():
-
+            # fill form for transaction search
+            self._transaction_form_filter(account)
 
             # pass data from form to transaction parser
             transaction_iterator = SberbankProcessedTransaction.transaction_parser(self.driver, account)
             for transaction_item in transaction_iterator:
                 self._container[account].append(transaction_item.transaction)
 
-    def transaction_form_filter(self, account: Type[AbstractSberbankAccount]):
+    def _transaction_form_filter(self, account: Type[AbstractSberbankAccount]):
         # show filter popup if it hidden
         if not self.driver.find_element(By.CLASS_NAME, 'filterMore').is_displayed():
             self.driver.find_element(By.CLASS_NAME, 'extendFilterButton').click()
@@ -221,7 +244,7 @@ class SberbankClientParser(AbstractClientParser):
 
         # choose datetime interval
         to_date = datetime.datetime.now()
-        from_date = to_date - datetime.timedelta(seconds=interval)
+        from_date = to_date - datetime.timedelta(seconds=self.transactions_interval)
 
         from_date_field = filter_form.find_element(By.ID, 'filter(fromDate)')
         from_date_field.clear()
@@ -241,4 +264,3 @@ class SberbankClientParser(AbstractClientParser):
         transaction_form_button_xpath = (".//div[contains(@class, 'commandButton')]//"
                                          f"span[contains(text(), '{text}')]")
         filter_form.find_element(By.XPATH, transaction_form_button_xpath).click()
-
