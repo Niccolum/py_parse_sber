@@ -1,4 +1,4 @@
-.env
+tests/mock_server/.env
 env
 *.log
 __pycache__

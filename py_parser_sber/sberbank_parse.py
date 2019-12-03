@@ -2,6 +2,7 @@ from typing import Optional, Iterator, Type, Dict
 import uuid
 import datetime
 from contextlib import suppress
+import logging
 
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
@@ -9,18 +10,20 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from abstract import (
+from py_parser_sber.abstract import (
     AbstractSberbankAccount,
     AbstractProcessedTransaction,
     Transaction,
     AbstractClientParser,
     TIMEOUT)
-from utils import (
+from py_parser_sber.utils import (
     check_authorization,
     sber_time_format,
     replace_formatter,
     currency_converter)
 
+
+logger = logging.getLogger(__name__)
 
 class BankAccountAbstract(AbstractSberbankAccount):
     acc_type = 'account'

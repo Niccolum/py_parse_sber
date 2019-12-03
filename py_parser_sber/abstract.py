@@ -1,6 +1,7 @@
 import abc
 from typing import Optional, Iterator, Dict, Type, Union, List
 from collections import namedtuple
+import logging
 
 import requests
 from selenium import webdriver
@@ -9,13 +10,14 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from utils import (
+from py_parser_sber.utils import (
     currency_converter,
     replace_formatter,
     get_query_attr,
     uri_validator)
 
 
+logger = logging.getLogger(__name__)
 TIMEOUT = 30
 Transaction = namedtuple('Transaction', ['id', 'transaction'])
 
@@ -146,7 +148,8 @@ class AbstractClientParser(abc.ABC):
     def _send_request(self, url: str, data: Union[Dict, List]) -> None:
         r = requests.post(url=url, json=data)
         if r.status_code != 200:
-            print('WARNING: request not sending')
+            logger.warning('WARNING: request not sending')
+            logger.debug(r.text)
 
     def send_account_data(self) -> None:
         data = [i.account for i in self._container.keys()]
