@@ -14,6 +14,7 @@ from py_parser_sber.utils import (
 
 
 logger = logging.getLogger(__name__)
+
 TIMEOUT = 30
 Transaction = namedtuple('Transaction', ['id', 'transaction'])
 
@@ -48,7 +49,7 @@ class AbstractAccount(abc.ABC):
         return vars(self).copy()
 
 
-class AbstractProcessedTransaction(abc.ABC):
+class AbstractTransaction(abc.ABC):
 
     def __init__(self, order_id: str, account_name: str, time: str, cost: str, currency: str, description: str):
         self.order_id = order_id
@@ -70,7 +71,7 @@ class AbstractProcessedTransaction(abc.ABC):
             cls,
             raw_transaction: WebElement,
             account: Type[AbstractAccount]
-    ) -> Iterator[Optional[Type['AbstractProcessedTransaction']]]:
+    ) -> Iterator[Optional[Type['AbstractTransaction']]]:
         ...
 
     @property
@@ -106,6 +107,7 @@ class AbstractClientParser(abc.ABC):
         current_url = self.driver.current_url
         click_item.click()
         WebDriverWait(self.driver, TIMEOUT).until(EC.url_changes(current_url))
+        logger.debug(f'Success. Old url: {current_url}. Current: {self.driver.current_url}')
 
     @abc.abstractmethod
     def auth(self) -> None:
@@ -114,13 +116,13 @@ class AbstractClientParser(abc.ABC):
         """
 
     @abc.abstractmethod
-    def account_page_parser(self) -> None:
+    def accounts_page_parser(self) -> None:
         """
-        parse info about bank account (like Bank Account or Card Bank Account)
+        parse info about bank accounts (like Bank Account or Card Bank Account)
         """
 
     @abc.abstractmethod
-    def transaction_page_parser(self) -> None:
+    def transactions_pages_parser(self) -> None:
         """
         parse page with transactions (payments, receipts and etc.)
         """
@@ -128,7 +130,7 @@ class AbstractClientParser(abc.ABC):
     def _send_request(self, url: str, data: Union[Dict, List]) -> None:
         r = requests.post(url=url, json=data)
         if r.status_code != 200:
-            logger.warning('WARNING: request not sending')
+            logger.warning('request not sending')
             logger.debug(r.text)
 
     def send_account_data(self) -> None:

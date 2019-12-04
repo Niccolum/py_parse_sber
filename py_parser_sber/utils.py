@@ -1,14 +1,19 @@
 import datetime
 import string
+import logging
 from urllib.parse import urlparse, parse_qsl
 from urllib.error import URLError
 from typing import Optional, Callable, List, Dict, Any
 
 
+logger = logging.getLogger(__name__)
+
+
 def check_authorization(f: Callable):
     def wrapper(self, *args: List[Any], **kwargs: Dict[Any, Any]):
         if getattr(self, 'main_menu_link') is None:
-            raise NameError('main_menu_link in not found. Are you authenticate?')
+            logger.error('main_menu_link is not found.')
+            raise NameError('Are you authenticate?')
         return f(self, *args, **kwargs)
     return wrapper
 
@@ -66,9 +71,13 @@ def uri_validator(x: str):
     try:
         url_scheme = urlparse(x)
     except Exception as err:
+        logger.exception(err, exc_info=True)
         raise URLError('Bad URL') from err
     else:
-        if not all([url_scheme.scheme, url_scheme.netloc, url_scheme.path]):
+        need_url_parameters = ['scheme', 'netloc', 'path']
+        if not all(getattr(url_scheme, arg) for arg in need_url_parameters):
+            not_found_parameters = [f'{arg} not found' for arg in need_url_parameters if not getattr(url_scheme, arg)]
+            logger.error(f'Bad URL: {", ".join(not_found_parameters)}')
             raise URLError('Bad URL')
         return x
 

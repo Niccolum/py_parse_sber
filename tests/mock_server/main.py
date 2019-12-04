@@ -1,5 +1,21 @@
 from flask import Flask, Response, request
-import marshmallow
+from marshmallow import Schema, fields
+
+
+class AccountSchema(Schema):
+    name = fields.Str()
+    value = fields.Int()
+    ccy = fields.Str()
+
+
+class PaymentSchema(Schema):
+    id = fields.Str()
+    account = fields.Str()
+    when = fields.DateTime()
+    amount = fields.Int()
+    currency = fields.Str()
+    what = fields.Str()
+
 
 app = Flask(__name__)
 
@@ -11,12 +27,18 @@ def status():
 @app.route('/send_account', methods=['POST'])
 def send_account():
     data = request.get_json()
+    errors = AccountSchema(many=True).validate(data)
+    if errors:
+        return Response(response=errors, status=400)
     return Response(response=data, status=200)
 
 
 @app.route('/send_payment', methods=['POST'])
-def send_account():
+def send_payment():
     data = request.get_json()
+    errors = PaymentSchema(many=True).validate(data)
+    if errors:
+        return Response(response=errors, status=400)
     return Response(response=data, status=200)
 
 

@@ -22,9 +22,8 @@ def main():
 
     sber = SberbankClientParser(**need_data_for_start)
     sber.auth()
-    sber.account_page_parser_BankAccount()
-    sber.account_page_parser_CardAccount()
-    sber.transaction_page_parser(interval=60 * 60 * 24 * 30)
+    sber.accounts_page_parser()
+    sber.transactions_pages_parser(interval=60 * 60 * 24 * 30)
     sber.send_account_data()
     sber.send_payment_data()
     logger.debug(sber._container)
