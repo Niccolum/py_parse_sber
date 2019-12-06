@@ -1,3 +1,4 @@
+import os
 import datetime
 import string
 import logging
@@ -67,7 +68,7 @@ def sber_time_format(datetime_obj: datetime.datetime):
     return format(datetime_obj, '%d%m%Y')
 
 
-def uri_validator(x: str):
+def uri_validator(x: str) -> str:
     try:
         url_scheme = urlparse(x)
     except Exception as err:
@@ -82,7 +83,14 @@ def uri_validator(x: str):
         return x
 
 
-def get_query_attr(url: str, attr: str):
+def get_query_attr(url: str, attr: str) -> str:
     query = urlparse(url).query
     attrs_dict = dict(parse_qsl(query))
     return attrs_dict.get(attr)
+
+
+def get_transaction_interval() -> int:
+    hours = int(os.environ.get('HOURS', 0))
+    days = int(os.environ.get('DAYS', 0))
+    interval = datetime.timedelta(hours=hours, days=days)
+    return interval.total_seconds() or 60 * 60 * 24 # default one day

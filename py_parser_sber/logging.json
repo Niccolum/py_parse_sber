@@ -4,7 +4,7 @@
 
   "formatters": {
     "simple": {
-      "format": "%(asctime)s | %(name)s | [%(levelname)s] | %(message)s"
+      "format": "%(asctime)s | %(name)s | %(levelname)s | %(message)s"
     }
   },
 
@@ -23,7 +23,17 @@
       "handlers": ["console"],
       "propagate": false
     },
-    "": {
+      "__main__": {
+      "level": "INFO",
+      "handlers": ["console"],
+      "propagate": false
+    },
+      "utils": {
+      "level": "INFO",
+      "handlers": ["console"],
+      "propagate": false
+    },
+    "abstract": {
       "level": "INFO",
       "handlers": ["console"],
       "propagate": false
