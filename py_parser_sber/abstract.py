@@ -2,7 +2,7 @@ import abc
 import uuid
 import json
 import time
-from typing import Optional, Iterator, Dict, Type, Union, List
+from typing import Optional, Iterator, Dict, Type, Union, List, ClassVar
 from collections import namedtuple
 import logging
 
@@ -24,6 +24,7 @@ Transaction = namedtuple('Transaction', ['id', 'transaction'])
 
 
 class AbstractAccount(abc.ABC):
+    acc_type: ClassVar[str]
 
     def __init__(self, name: str, funds: str, currency: str, account_id: str):
         self.name = name
@@ -38,7 +39,7 @@ class AbstractAccount(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def _account_parser(cls, raw_account: WebElement) -> Type['AbstractAccount']:
+    def account_parser(cls, raw_account: WebElement) -> Type['AbstractAccount']:
         """
         get raw parsed data (strings) and create, based on it, own class
         """
@@ -61,10 +62,10 @@ class AbstractAccount(abc.ABC):
 
 class AbstractTransaction(abc.ABC):
 
-    def __init__(self, order_id: str, account_name: str, time: str, cost: str, currency: str, description: str):
+    def __init__(self, order_id: str, account_name: str, tr_time: str, cost: str, currency: str, description: str):
         self.order_id = order_id
         self.account_name = account_name
-        self.time = time
+        self.tr_time = tr_time
         self.cost = cost
         self.currency = currency
         self.description = description
@@ -101,7 +102,7 @@ class AbstractTransaction(abc.ABC):
         return {
             'id': self.transaction_id,
             'account': self.account_name,
-            'when': self.time,
+            'when': self.tr_time,
             'amount': self.cost,
             'currency': self.currency,
             'what': self.description
@@ -119,7 +120,7 @@ class AbstractClientParser(abc.ABC):
         self.login = login
         self.password = password
         self.driver = self._prepare_webdriver()
-        self._container: Dict[Type[AbstractAccount], List[Optional[Type[AbstractTransaction]]]] = {}
+        self._container: Dict[AbstractAccount, List[Optional[Type[AbstractTransaction]]]] = {}
         self.send_account_url = uri_validator(server_url + send_account_url)
         self.send_payment_url = uri_validator(server_url + send_payment_url)
         self.transactions_interval = transactions_interval
@@ -145,7 +146,8 @@ class AbstractClientParser(abc.ABC):
             end_time = time.monotonic() - start_time
             logger.info(f'Success redirect from {current_url} to {self.driver.current_url} by {end_time:.2f} seconds')
         except TimeoutException as exc:
-            logger.error(f'Error. Old url: {current_url} has not changed to {self.driver.current_url} with timeout {TIMEOUT}')
+            logger.error(f'Error. Old url: {current_url} has not changed to '
+                         f'{self.driver.current_url} with timeout {TIMEOUT}')
             logger.exception(exc, exc_info=True)
             self.close()
             raise TimeoutException from exc

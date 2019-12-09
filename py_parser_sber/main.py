@@ -43,6 +43,7 @@ def main():
     finally:
         sber.close()
 
+
 if __name__ == '__main__':
     setup_logging()
     load_env_vars()

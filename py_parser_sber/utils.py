@@ -38,7 +38,7 @@ class ElementHasCss:
             return False
 
 
-def replace_formatter(currency: str, delete_symbols: Optional[str]=None, custom: Optional[dict]=None) -> str:
+def replace_formatter(currency: str, delete_symbols: Optional[str] = None, custom: Optional[dict] = None) -> str:
     """
     replace unnecessary symbols
     """
@@ -93,4 +93,4 @@ def get_transaction_interval() -> int:
     hours = int(os.environ.get('HOURS', 0))
     days = int(os.environ.get('DAYS', 0))
     interval = datetime.timedelta(hours=hours, days=days)
-    return interval.total_seconds() or 60 * 60 * 24 # default one day
+    return interval.total_seconds() or 60 * 60 * 24  # default one day

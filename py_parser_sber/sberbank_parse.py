@@ -1,4 +1,4 @@
-from typing import Optional, Iterator, Type, Dict, ClassVar
+from typing import Optional, Iterator, Sequence, Type, Dict, Union
 import datetime
 from contextlib import suppress
 import logging
@@ -29,10 +29,9 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractSberbankAccount(AbstractAccount):
-    acc_type: ClassVar[str]
 
     @classmethod
-    def _account_parser(cls, raw_account: WebElement) -> 'AbstractSberbankAccount':
+    def account_parser(cls, raw_account: WebElement) -> 'AbstractSberbankAccount':
         name = raw_account.find_element(By.XPATH, './/span[contains(@class, "titleBlock")]').get_attribute('title')
 
         url = raw_account.find_element(By.XPATH, './/div[contains(@class, "pruductImg")]/a').get_attribute("href")
@@ -59,7 +58,7 @@ class SberbankTransaction(AbstractTransaction):
 
     @classmethod
     def transaction_parser(
-            cls, driver: WebDriver, account: AbstractSberbankAccount
+            cls, driver: WebDriver, account: AbstractAccount
     ) -> Iterator[Optional['SberbankTransaction']]:
 
         transactions_table = driver.find_element(By.ID, 'simpleTable0')
@@ -126,7 +125,7 @@ class SberbankTransaction(AbstractTransaction):
                 break
 
     @classmethod
-    def _add_custom_unique_tr_id(cls, raw_tr_list: Iterator[Dict[str, str]]) -> Transaction:
+    def _add_custom_unique_tr_id(cls, raw_tr_list: Sequence[Dict[str, Union[str, int]]]) -> Transaction:
         for order_id, curr_day_raw_tr in enumerate(reversed(raw_tr_list), 1):
             curr_day_raw_tr['order_id'] = order_id
 
@@ -191,22 +190,22 @@ class SberbankClientParser(AbstractClientParser):
         # get info about every funds
         raw_accounts = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'productCover')]")
         for raw_account in raw_accounts:
-            parsed_account = account._account_parser(raw_account)
+            parsed_account = account.account_parser(raw_account)
             self._container[parsed_account] = []
 
-    def __account_page_parser_BankAccount(self) -> None:
+    def __account_page_parser_bank_account(self) -> None:
         text = 'Все вклады и счета'
         account = SberbankBankAccount
         self._account_page_parser(text=text, account=account)
 
-    def __account_page_parser_CardAccount(self) -> None:
+    def __account_page_parser_card_account(self) -> None:
         text = 'Все карты'
         account = SberbankCardAccount
         self._account_page_parser(text=text, account=account)
 
     def accounts_page_parser(self) -> None:
-        self.__account_page_parser_BankAccount()
-        self.__account_page_parser_CardAccount()
+        self.__account_page_parser_bank_account()
+        self.__account_page_parser_card_account()
 
     @check_authorization
     def transactions_pages_parser(self) -> None:
@@ -216,7 +215,7 @@ class SberbankClientParser(AbstractClientParser):
         # go to page with transactions history
         text = 'История операций'
         transaction_form_template = ("//ul[contains(@class, 'linksList')]/li/a/div[contains(@class, 'greenTitle')]/"
-                          f"span[contains(text(), '{text}')]")
+                                     f"span[contains(text(), '{text}')]")
         link = self.driver.find_element(By.XPATH, transaction_form_template)
         self.wait_click_redirect(link)
 
@@ -229,7 +228,7 @@ class SberbankClientParser(AbstractClientParser):
             for transaction_item in transaction_iterator:
                 self._container[account].append(transaction_item)
 
-    def _transaction_form_filter(self, account: Type[AbstractSberbankAccount]):
+    def _transaction_form_filter(self, account: AbstractAccount):
         # show filter popup if it hidden
         if not self.driver.find_element(By.CLASS_NAME, 'filterMore').is_displayed():
             self.driver.find_element(By.CLASS_NAME, 'extendFilterButton').click()
@@ -272,4 +271,4 @@ class SberbankClientParser(AbstractClientParser):
 
     def close(self) -> None:
         super(SberbankClientParser, self).close()
-        self.main_menu_link = None # logout for check_authorization
+        self.main_menu_link = None  # logout for check_authorization
