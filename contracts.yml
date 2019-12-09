@@ -1,0 +1,94 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: py_parser_sber
+  description: It's simple parser of Sberbank, using selenium (firefox geckodriver), where you can see your account currency and transactions for some period.
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+/send_account:
+  post:
+    description: Endpoint for getting account data from py_parse_sber
+    parameters:
+      - in: body
+        schema:
+          type: object
+          required:
+            - accounts
+          properties:
+            accounts:
+              type: array
+              items:
+                $ref: "#/definitions/AccountSchema"
+    responses:
+      200:
+        description: OK
+      400:
+        description: Error
+      500:
+        description: Something goes wrong
+
+
+
+/send_payment:
+  post:
+    description: Endpoint for getting transaction data from py_parse_sber
+    parameters:
+      - in: body
+        schema:
+          type: object
+          required:
+            - transactions
+          properties:
+            accounts:
+              type: array
+              items:
+                $ref: "#/definitions/TransactionSchema"
+    responses:
+      200:
+        description: OK
+      400:
+        description: Error
+      500:
+        description: Something goes wrong
+
+definitions:
+  AccountSchema:
+    type: object
+      required:
+        - name
+        - value
+        - ccy
+      properties:
+        name:
+          type: string
+        value:
+          type: number
+        ccy:
+          type: string
+
+  TransactionSchema:
+    required:
+      - id
+      - account
+      - when
+      - amount
+      - currency
+      - what
+    properties:
+      id:
+        type: string
+      account:
+        type: string
+      when:
+        type: string
+        pattern: '\d{4}.\d{1,2}.\d{1,2}'
+      amount:
+        type: number
+      currency:
+        type: string
+      what:
+        type: string
