@@ -3,4 +3,7 @@ env
 *.log
 __pycache__
 .idea
-*.egg-info
+*.pyc
+*.pyo
+*.egg-info/
+dist

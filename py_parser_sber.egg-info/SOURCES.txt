@@ -1,7 +1,0 @@
-README.md
-py_parser_sber.egg-info/PKG-INFO
-py_parser_sber.egg-info/SOURCES.txt
-py_parser_sber.egg-info/dependency_links.txt
-py_parser_sber.egg-info/entry_points.txt
-py_parser_sber.egg-info/requires.txt
-py_parser_sber.egg-info/top_level.txt
