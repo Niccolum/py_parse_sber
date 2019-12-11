@@ -61,7 +61,9 @@ If any of their not set - used 1 day by default
 
 #### Run
 ```bash
-python3 -m py_parse_sber
+py_parser_sber_run_once # for one-time launch
+# or
+py_parser_sber_run_infinite # for run in loop with a given period
 ```
 
 ## Authors

@@ -14,7 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.firefox.options import Options
 
-from utils import uri_validator
+from py_parser_sber.utils import uri_validator
 
 
 logger = logging.getLogger(__name__)

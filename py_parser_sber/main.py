@@ -7,8 +7,8 @@ import logging.config
 
 from dotenv import load_dotenv
 
-from utils import get_transaction_interval
-from sberbank_parse import SberbankClientParser
+from py_parser_sber.utils import get_transaction_interval
+from py_parser_sber.sberbank_parse import SberbankClientParser
 
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ def load_env_vars():
     load_dotenv(project_dir.joinpath('.env'))
 
 
-def main():
+def runner():
     need_env_vars = ['LOGIN', 'PASSWORD', 'SERVER_URL', 'SEND_ACCOUNT_URL', 'SEND_PAYMENT_URL']
     need_data_for_start = {k.lower(): os.environ[k] for k in need_env_vars}
 
@@ -43,15 +43,27 @@ def main():
     finally:
         sber.close()
 
+def main():
+    setup_logging()
+    load_env_vars()
 
-if __name__ == '__main__':
+    try:
+        runner()
+    except Exception as err:
+        logger.exception(err, exc_info=True)
+
+
+def main_loop():
     setup_logging()
     load_env_vars()
 
     while 1:
         try:
-            main()
+            runner()
             time.sleep(get_transaction_interval())
         except Exception as err:
             logger.exception(err, exc_info=True)
             break
+
+if __name__ == '__main__':
+    main()

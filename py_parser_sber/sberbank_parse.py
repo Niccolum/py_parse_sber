@@ -10,13 +10,13 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from abstract import (
+from py_parser_sber.abstract import (
     AbstractAccount,
     AbstractTransaction,
     Transaction,
     AbstractClientParser,
     TIMEOUT)
-from utils import (
+from py_parser_sber.utils import (
     check_authorization,
     sber_time_format,
     replace_formatter,
@@ -84,7 +84,7 @@ class SberbankTransaction(AbstractTransaction):
 
                 raw_transaction = {
                     'account_name': account.name,
-                    'time': curr_transaction_date,
+                    'tr_time': curr_transaction_date,
                     'cost': replace_formatter(raw_cost, delete_symbols=' ', custom={',': '.'}),
                     'currency': currency_converter(raw_currency),
                     'description': raw_info[0].rsplit('\n', 1)[0],
