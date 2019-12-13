@@ -4,7 +4,7 @@
 
   "formatters": {
     "simple": {
-      "format": "%(asctime)s | %(name)s | %(levelname)s | %(message)s"
+      "format": "%(asctime)s | %(name)-30s | %(levelname)-7s | Line %(lineno)-3d | %(message)s"
     }
   },
 
@@ -14,26 +14,19 @@
       "level": "DEBUG",
       "formatter": "simple",
       "stream": "ext://sys.stdout"
+    },
+    "file": {
+      "class": "logging.handlers.RotatingFileHandler",
+      "formatter": "simple",
+      "level": "WARNING",
+      "filename": "warnings.log",
+      "maxBytes": 1024,
+      "backupCount": 3
     }
   },
 
   "loggers": {
-    "sberbank_parse": {
-      "level": "INFO",
-      "handlers": ["console"],
-      "propagate": false
-    },
-      "__main__": {
-      "level": "INFO",
-      "handlers": ["console"],
-      "propagate": false
-    },
-      "utils": {
-      "level": "INFO",
-      "handlers": ["console"],
-      "propagate": false
-    },
-    "abstract": {
+    "py_parser_sber": {
       "level": "INFO",
       "handlers": ["console"],
       "propagate": false

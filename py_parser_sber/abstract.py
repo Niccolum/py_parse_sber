@@ -7,14 +7,15 @@ from collections import namedtuple
 import logging
 
 import requests
+from requests.exceptions import ConnectionError
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support import expected_conditions
+from selenium.common.exceptions import SeleniumTimeoutException
 from selenium.webdriver.firefox.options import Options
 
-from py_parser_sber.utils import uri_validator
+from py_parser_sber.utils import uri_validator, Retry
 
 
 logger = logging.getLogger(__name__)
@@ -140,29 +141,47 @@ class AbstractClientParser(abc.ABC):
         """
         current_url = self.driver.current_url
         click_item.click()
-        try:
-            start_time = time.monotonic()
-            WebDriverWait(self.driver, TIMEOUT).until(EC.url_changes(current_url))
-            end_time = time.monotonic() - start_time
-            logger.info(f'Success redirect from {current_url} to {self.driver.current_url} by {end_time:.2f} seconds')
-        except TimeoutException as exc:
-            logger.error(f'Error. Old url: {current_url} has not changed to '
-                         f'{self.driver.current_url} with timeout {TIMEOUT}')
-            logger.exception(exc, exc_info=True)
-            self.close()
-            raise TimeoutException from exc
+
+        retry = Retry(timeout=1)
+        while 1:
+            try:
+                start_time = time.monotonic()
+                WebDriverWait(self.driver, TIMEOUT).until(expected_conditions.url_changes(current_url))
+                end_time = time.monotonic() - start_time
+                logger.info(f'Success redirect from {current_url} to {self.driver.current_url} '
+                            f'by {end_time:.2f} seconds')
+                break
+
+            except SeleniumTimeoutException as exc:
+                logger.error(f'Error. Old url: {current_url} has not changed to '
+                             f'{self.driver.current_url} with timeout {TIMEOUT}')
+                try:
+                    retry.increment(attempt=3)
+                except TimeoutError:
+                    logger.warning('All attempts failed')
+                    logger.exception(exc, exc_info=True)
+                    self.close()
+                    raise SeleniumTimeoutException from exc
 
     def get(self, url: str):
-        try:
-            start_time = time.monotonic()
-            self.driver.get(url)
-            end_time = time.monotonic() - start_time
-            logger.info(f"Success loading page: {url} by {end_time:.2f} seconds")
-        except TimeoutException as exc:
-            logger.error(f"Couldn't load page {url} with timeout {TIMEOUT}")
-            logger.exception(exc, exc_info=True)
-            self.close()
-            raise TimeoutException from exc
+        retry = Retry(timeout=1)
+        while 1:
+            try:
+                start_time = time.monotonic()
+                self.driver.get(url)
+                end_time = time.monotonic() - start_time
+                logger.info(f"Success loading page: {url} by {end_time:.2f} seconds")
+                break
+
+            except SeleniumTimeoutException as exc:
+                logger.error(f"Couldn't load page {url} with timeout {TIMEOUT}")
+                try:
+                    retry.increment(attempt=3)
+                except TimeoutError:
+                    logger.warning('All attempts failed')
+                    logger.exception(exc, exc_info=True)
+                    self.close()
+                    raise SeleniumTimeoutException from exc
 
     @abc.abstractmethod
     def auth(self) -> None:
@@ -184,11 +203,24 @@ class AbstractClientParser(abc.ABC):
 
     @staticmethod
     def _send_request(url: str, data: Union[Dict, List]) -> None:
-        headers = {'content-type': 'application/json'}
-        r = requests.post(url=url, data=json.dumps(data), headers=headers)
-        if r.status_code != 200:
-            logger.warning('request not sending')
-            logger.info(r.text)
+        retry = Retry(timeout=1)
+        while 1:
+            headers = {'content-type': 'application/json'}
+            try:
+                r = requests.post(url=url, data=json.dumps(data), headers=headers)
+            except ConnectionError as exc:
+                logger.warning(f'request to url {url} not sending')
+                try:
+                    retry.increment(attempt=5)
+                except TimeoutError:
+                    logger.warning('All attempts failed')
+                    logger.exception(exc, exc_info=True)
+                    raise ConnectionError from exc
+            else:
+                if r.status_code != 200:
+                    logger.warning(f'request to url {url} with data {data} not sending')
+                    logger.error(r.text)
+                break
 
     def send_account_data(self) -> None:
         data = [acc.to_json() for acc in self._container.keys()]
@@ -196,8 +228,13 @@ class AbstractClientParser(abc.ABC):
 
     def send_payment_data(self) -> None:
         data = [tr.to_json() for acc_tr in self._container.values() for tr in acc_tr]
-        self._send_request(url=self.send_payment_url, data=data)
+        if data:
+            self._send_request(url=self.send_payment_url, data=data)
+        else:
+            logger.info('No transactions data for last time')
 
     def close(self) -> None:
+        logger.info('Force closing the web driver ...')
         self.driver.quit()
         self._container.clear()
+        logger.debug('Done')

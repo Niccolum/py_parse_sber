@@ -2,6 +2,7 @@ import os
 import datetime
 import string
 import logging
+import time
 from urllib.parse import urlparse, parse_qsl
 from urllib.error import URLError
 from typing import Optional, Callable, List, Dict, Any
@@ -17,25 +18,6 @@ def check_authorization(f: Callable):
             raise NameError('Are you authenticate?')
         return f(self, *args, **kwargs)
     return wrapper
-
-
-class ElementHasCss:
-    """
-    An expectation for checking that an element has a particular css style.
-    locator - used to find the element
-    returns the WebElement once it has the particular css class
-    """
-    def __init__(self, locator, css_key, css_val):
-        self.locator = locator
-        self.css_key = css_key
-        self.css_val = css_val
-
-    def __call__(self, driver):
-        element = driver.find_element(*self.locator)   # Finding the referenced element
-        if element.value_of_css_property(self.css_key) == self.css_val:
-            return element
-        else:
-            return False
 
 
 def replace_formatter(currency: str, delete_symbols: Optional[str] = None, custom: Optional[dict] = None) -> str:
@@ -94,3 +76,23 @@ def get_transaction_interval() -> int:
     days = int(os.environ.get('DAYS', 0))
     interval = datetime.timedelta(hours=hours, days=days)
     return interval.total_seconds() or 60 * 60 * 24  # default one day
+
+
+class Retry:
+    def __init__(self, timeout):
+        self.default_timeout = timeout
+        self.clear()
+
+    def increment(self, attempt=10):
+        if self._attempt > attempt:
+            self.clear()
+            raise TimeoutError
+
+        logger.info(f'New attempt with timeout {self.current_timeout} ...')
+        time.sleep(self.current_timeout)
+        self.current_timeout *= 2
+        self._attempt += 1
+
+    def clear(self):
+        self.current_timeout = self.default_timeout
+        self._attempt = 0

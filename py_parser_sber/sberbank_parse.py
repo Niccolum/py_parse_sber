@@ -5,10 +5,10 @@ import logging
 
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, SeleniumTimeoutException
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions
 
 from py_parser_sber.abstract import (
     AbstractAccount,
@@ -21,7 +21,8 @@ from py_parser_sber.utils import (
     sber_time_format,
     replace_formatter,
     currency_converter,
-    get_query_attr
+    get_query_attr,
+    Retry
 )
 
 
@@ -117,8 +118,23 @@ class SberbankTransaction(AbstractTransaction):
                         break
 
                     button.click()
-                    transactions_table = WebDriverWait(driver, TIMEOUT).until(
-                        EC.presence_of_element_located((By.ID, 'simpleTable0')))
+
+                    retry = Retry(timeout=1)
+                    while 1:
+                        try:
+                            transactions_table = WebDriverWait(driver, TIMEOUT).until(
+                                expected_conditions.presence_of_element_located((By.ID, 'simpleTable0')))
+                            retry.clear()
+                            break
+                        except SeleniumTimeoutException as exc:
+                            logger.error(f'Error. WebDriver not found page with new transactions for timeout {TIMEOUT}.'
+                                         ' Please, check your network connection')
+                            try:
+                                retry.increment(attempt=3)
+                            except TimeoutError:
+                                logger.warning('All attempts failed')
+                                logger.exception(exc, exc_info=True)
+                                raise SeleniumTimeoutException from exc
             else:
                 logger.debug(f'return transactions {curr_day_transactions} for {prev_transaction_data}')
                 yield from cls._add_custom_unique_tr_id(curr_day_transactions)
@@ -165,6 +181,22 @@ class SberbankClientParser(AbstractClientParser):
         autheticate in sberbank-online
         """
         self.get(self.main_page)
+
+        retry = Retry(timeout=1)
+        while 1:
+            try:
+                WebDriverWait(self.driver, TIMEOUT).until(
+                    expected_conditions.presence_of_element_located((By.ID, 'loginByLogin')))
+                break
+            except SeleniumTimeoutException as exc:
+                logger.error(f'Error. WebDriver not found auth page with timeout {TIMEOUT}.'
+                             'Please, check your network connection and retry')
+                try:
+                    retry.increment(attempt=3)
+                except TimeoutError:
+                    logger.warning('All attempts failed')
+                    logger.exception(exc, exc_info=True)
+                    raise SeleniumTimeoutException from exc
 
         login_input = self.driver.find_element(By.ID, "loginByLogin")
         login_input.send_keys(self.login)

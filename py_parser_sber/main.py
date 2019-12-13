@@ -7,7 +7,7 @@ import logging.config
 
 from dotenv import load_dotenv
 
-from py_parser_sber.utils import get_transaction_interval
+from py_parser_sber.utils import get_transaction_interval, Retry
 from py_parser_sber.sberbank_parse import SberbankClientParser
 
 
@@ -27,6 +27,7 @@ def load_env_vars():
 
 
 def runner():
+    logger.info('Start parsing...')
     need_env_vars = ['LOGIN', 'PASSWORD', 'SERVER_URL', 'SEND_ACCOUNT_URL', 'SEND_PAYMENT_URL']
     need_data_for_start = {k.lower(): os.environ[k] for k in need_env_vars}
 
@@ -43,27 +44,44 @@ def runner():
     finally:
         sber.close()
 
+
 def main():
     setup_logging()
     load_env_vars()
 
-    try:
-        runner()
-    except Exception as err:
-        logger.exception(err, exc_info=True)
+    retry = Retry(timeout=1)
+    while 1:
+        try:
+            runner()
+            break
+        except Exception as err:
+            try:
+                retry.increment(attempt=3)
+            except TimeoutError:
+                logger.error('All attempts failed. Closing...')
+                logger.exception(err, exc_info=True)
+                break
 
 
 def main_loop():
     setup_logging()
     load_env_vars()
 
+    retry = Retry(timeout=1)
     while 1:
         try:
             runner()
+            retry.clear()
             time.sleep(get_transaction_interval())
         except Exception as err:
-            logger.exception(err, exc_info=True)
-            break
+            try:
+                retry.increment(attempt=5)
+            except TimeoutError:
+                # We believe that our attempts are exhausted. Try after main interval
+                logger.error('All attempts failed. Waiting for a new iteration')
+                logger.exception(err, exc_info=True)
+                time.sleep(get_transaction_interval())
+
 
 if __name__ == '__main__':
     main()
