@@ -49,8 +49,8 @@ setup(
     include_package_data=True,
     entry_points = {
         'console_scripts': [
-            'py_parser_sber_run_once = py_parser_sber.main:main',
-            'py_parser_sber_run_infinite = py_parser_sber.main:main_loop',
+            'py_parser_sber_run_once = py_parser_sber.main:py_parser_sber_run_once',
+            'py_parser_sber_run_infinite = py_parser_sber.main:py_parser_sber_run_infinite',
         ],
     },
     python_requires='>=3.6',

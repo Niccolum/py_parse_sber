@@ -45,43 +45,30 @@ def runner():
         sber.close()
 
 
-def main():
+def py_parser_sber_run_once():
     setup_logging()
     load_env_vars()
 
-    retry = Retry(timeout=1)
-    while 1:
-        try:
-            runner()
-            break
-        except Exception as err:
-            try:
-                retry.increment(attempt=3)
-            except TimeoutError:
-                logger.error('All attempts failed. Closing...')
-                logger.exception(err, exc_info=True)
-                break
+    retry = Retry(function=runner, error=Exception, max_attempts=1)
+    try:
+        retry()
+    except Exception:
+        pass
 
 
-def main_loop():
+def py_parser_sber_run_infinite():
     setup_logging()
     load_env_vars()
 
-    retry = Retry(timeout=1)
+    retry = Retry(function=runner, error=Exception)
     while 1:
         try:
-            runner()
-            retry.clear()
+            retry()
+        except Exception:
+            pass
+        finally:
             time.sleep(get_transaction_interval())
-        except Exception as err:
-            try:
-                retry.increment(attempt=5)
-            except TimeoutError:
-                # We believe that our attempts are exhausted. Try after main interval
-                logger.error('All attempts failed. Waiting for a new iteration')
-                logger.exception(err, exc_info=True)
-                time.sleep(get_transaction_interval())
 
 
 if __name__ == '__main__':
-    main()
+    py_parser_sber_run_once()

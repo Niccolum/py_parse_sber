@@ -79,20 +79,41 @@ def get_transaction_interval() -> int:
 
 
 class Retry:
-    def __init__(self, timeout):
-        self.default_timeout = timeout
+    def __init__(self, function, error, err_msg='', max_attempts=5):
+        self.function = function
+        self.error = error
+        self.err_msg = err_msg
+        self.default_timeout = 1
+        self.max_attempts = max_attempts
         self.clear()
 
-    def increment(self, attempt=10):
-        if self._attempt > attempt:
+    def __call__(self, *args, **kwargs):
+        while 1:
+            try:
+                result = self.function(*args, **kwargs)
+                self.clear()
+                return result
+            except self.error as err:
+                if self.err_msg:
+                    logger.error(self.err_msg)
+                try:
+                    self.increment()
+                except TimeoutError:
+                    # We believe that our attempts are exhausted. Try after main interval
+                    logger.exception(err, exc_info=True)
+                    raise err
+
+    def increment(self):
+        if self.current_attempt > self.max_attempts:
             self.clear()
+            logger.warning('All attempts failed')
             raise TimeoutError
 
-        logger.info(f'New attempt with timeout {self.current_timeout} ...')
+        logger.info(f'{self.current_attempt}/{self.max_attempts} attempt with timeout {self.current_timeout} ...')
         time.sleep(self.current_timeout)
         self.current_timeout *= 2
-        self._attempt += 1
+        self.current_attempt += 1
 
     def clear(self):
         self.current_timeout = self.default_timeout
-        self._attempt = 0
+        self.current_attempt = 1

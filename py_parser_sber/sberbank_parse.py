@@ -119,22 +119,19 @@ class SberbankTransaction(AbstractTransaction):
 
                     button.click()
 
-                    retry = Retry(timeout=1)
-                    while 1:
-                        try:
-                            transactions_table = WebDriverWait(driver, TIMEOUT).until(
-                                expected_conditions.presence_of_element_located((By.ID, 'simpleTable0')))
-                            retry.clear()
-                            break
-                        except SeleniumTimeoutException as exc:
-                            logger.error(f'Error. WebDriver not found page with new transactions for timeout {TIMEOUT}.'
-                                         ' Please, check your network connection')
-                            try:
-                                retry.increment(attempt=3)
-                            except TimeoutError:
-                                logger.warning('All attempts failed')
-                                logger.exception(exc, exc_info=True)
-                                raise SeleniumTimeoutException from exc
+                    def wait_new_table():
+                        # waiting new page with transactions
+                        WebDriverWait(driver, TIMEOUT).until(
+                            expected_conditions.presence_of_element_located((By.ID, 'simpleTable0')))
+
+                    retry = Retry(
+                        function=wait_new_table,
+                        error=SeleniumTimeoutException,
+                        err_msg=(f'Error. WebDriver not found page with new transactions for timeout {TIMEOUT}.'
+                                         ' Please, check your network connection'),
+                        max_attempts=3
+                        )
+                    retry()
             else:
                 logger.debug(f'return transactions {curr_day_transactions} for {prev_transaction_data}')
                 yield from cls._add_custom_unique_tr_id(curr_day_transactions)
@@ -182,21 +179,22 @@ class SberbankClientParser(AbstractClientParser):
         """
         self.get(self.main_page)
 
-        retry = Retry(timeout=1)
-        while 1:
-            try:
-                WebDriverWait(self.driver, TIMEOUT).until(
-                    expected_conditions.presence_of_element_located((By.ID, 'loginByLogin')))
-                break
-            except SeleniumTimeoutException as exc:
-                logger.error(f'Error. WebDriver not found auth page with timeout {TIMEOUT}.'
-                             'Please, check your network connection and retry')
-                try:
-                    retry.increment(attempt=3)
-                except TimeoutError:
-                    logger.warning('All attempts failed')
-                    logger.exception(exc, exc_info=True)
-                    raise SeleniumTimeoutException from exc
+        def wait_auth_form():
+            WebDriverWait(self.driver, TIMEOUT).until(
+                expected_conditions.presence_of_element_located((By.ID, 'loginByLogin')))
+
+        retry = Retry(
+            function=wait_auth_form,
+            error=SeleniumTimeoutException,
+            err_msg=(f'Error. WebDriver not found auth page with timeout {TIMEOUT}.'
+                     ' Please, check your network connection and retry'),
+            max_attempts=3
+        )
+        try:
+            retry()
+        except SeleniumTimeoutException as exc:
+            self.close()
+            raise SeleniumTimeoutException from exc
 
         login_input = self.driver.find_element(By.ID, "loginByLogin")
         login_input.send_keys(self.login)
