@@ -49,7 +49,7 @@ def py_parser_sber_run_once():
     setup_logging()
     load_env_vars()
 
-    retry = Retry(function=runner, error=Exception, max_attempts=1)
+    retry = Retry(function=runner, error=Exception, max_attempts=2)
     try:
         retry()
     except Exception:
@@ -60,12 +60,10 @@ def py_parser_sber_run_infinite():
     setup_logging()
     load_env_vars()
 
-    retry = Retry(function=runner, error=Exception)
+    retry = Retry(function=runner, error=Exception, max_attempts=3)
     while 1:
         try:
             retry()
-        except Exception:
-            pass
         finally:
             time.sleep(get_transaction_interval())
 

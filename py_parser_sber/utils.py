@@ -107,7 +107,7 @@ class Retry:
         if self.current_attempt > self.max_attempts:
             self.clear()
             logger.warning('All attempts failed')
-            raise TimeoutError
+            raise TimeoutError('All attempts failed')
 
         logger.info(f'{self.current_attempt}/{self.max_attempts} attempt with timeout {self.current_timeout} ...')
         time.sleep(self.current_timeout)

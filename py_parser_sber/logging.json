@@ -20,7 +20,7 @@
       "formatter": "simple",
       "level": "WARNING",
       "filename": "warnings.log",
-      "maxBytes": 1024,
+      "maxBytes": 10485760,
       "backupCount": 3
     }
   },
@@ -28,7 +28,7 @@
   "loggers": {
     "py_parser_sber": {
       "level": "INFO",
-      "handlers": ["console"],
+      "handlers": ["console", "file"],
       "propagate": false
     }
   }
