@@ -1,0 +1,10 @@
+FROM python:3.7
+
+RUN apt update && apt install -y python3 curl
+
+WORKDIR /opt/app
+
+COPY tests/mock_server mock_server
+RUN pip3 install --no-cache-dir -r mock_server/requirements.txt
+
+CMD ["python3", "mock_server/main.py"]

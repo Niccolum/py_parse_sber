@@ -1,0 +1,30 @@
+version: '3.4'
+
+services:
+  mock_server:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile_mock_server
+    healthcheck:
+      test: curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/status || exit 1
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  py_parse_sber:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    environment:
+      LOGIN: ...
+      PASSWORD: ...
+      SERVER_URL: mock_server
+      SEND_ACCOUNT_URL: /send_account
+      SEND_PAYMENT_URL: /send_payment
+      DAYS: 1
+      HOURS: 0
+    volumes:
+      - ./:/opt/app
+    depends_on:
+      - mock_server
+
