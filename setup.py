@@ -6,12 +6,13 @@ from setuptools import setup, find_packages
 if sys.version_info < (3, 6):
     # python must be greater than 3.5 because of https://www.python.org/dev/peps/pep-0484/
     # python must be greater than 3.6 because of https://www.python.org/dev/peps/pep-0526/
-    raise RuntimeError("Intrst_algrms 3.x requires Python 3.6+")
+    raise RuntimeError("py_parse_sber 3.x requires Python 3.6+")
 
 
 def read(fname):
     with open(os.path.join(os.path.dirname(__file__), fname)) as f:
         return f.read()
+
 
 install_requires = [
     'requests>=2.22.0',
@@ -23,12 +24,12 @@ tests_require = [
 
 ]
 
-extras_require = {
-    'docs': [
+extras_require = dict(
+    docs=[
         'Sphinx',
     ],
-    'tests': tests_require,
-}
+    tests=tests_require,
+)
 
 extras_require['all'] = []
 for reqs in extras_require.values():
@@ -38,7 +39,7 @@ setup(
     name="py_parser_sber",
     author="Nikolai Vidov",
     author_email="lastsal@mail.ru",
-    version='0.0.1',
+    version='0.0.2',
     description="Simple parser of Sberbank, using selenium",
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
@@ -47,7 +48,7 @@ setup(
     platforms='any',
     packages=find_packages(),
     include_package_data=True,
-    entry_points = {
+    entry_points={
         'console_scripts': [
             'py_parser_sber_run_once = py_parser_sber.main:py_parser_sber_run_once',
             'py_parser_sber_run_infinite = py_parser_sber.main:py_parser_sber_run_infinite',

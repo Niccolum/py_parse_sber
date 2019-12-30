@@ -21,7 +21,7 @@ class PaymentSchema(Schema):
 
 app = Flask(__name__)
 
-@app.route('/status')
+@app.route('/healthcheck')
 def status():
     return Response(status=200)
 
