@@ -16,8 +16,7 @@ def read(fname):
 
 install_requires = [
     'requests==2.22.0',
-    'selenium==3.141.0',
-    'python-dotenv==0.10.3'
+    'selenium==3.141.0'
 ]
 
 tests_require = [
@@ -39,7 +38,7 @@ setup(
     name="py_parser_sber",
     author="Nikolai Vidov",
     author_email="lastsal@mail.ru",
-    version='0.0.12',
+    version='0.0.13',
     description="Simple parser of Sberbank, using selenium",
     long_description=read('README.md'),
     long_description_content_type='text/markdown',

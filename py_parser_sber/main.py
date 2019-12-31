@@ -5,8 +5,6 @@ import time
 import logging
 import logging.config
 
-from dotenv import load_dotenv
-
 from py_parser_sber.utils import get_transaction_interval, Retry
 from py_parser_sber.sberbank_parse import SberbankClientParser
 
@@ -19,11 +17,6 @@ def setup_logging(logging_path='logging.json'):
     with curr_dir.joinpath(logging_path).open() as f:
         config = json.load(f)
     logging.config.dictConfig(config)
-
-
-def load_env_vars():
-    project_dir = Path(__file__).resolve().parents[1]
-    load_dotenv(project_dir.joinpath('.env'))
 
 
 def runner():
@@ -49,7 +42,6 @@ def runner():
 
 def py_parser_sber_run_once():
     setup_logging()
-    load_env_vars()
 
     retry = Retry(function=runner, error=Exception, max_attempts=2)
     retry()
@@ -57,7 +49,6 @@ def py_parser_sber_run_once():
 
 def py_parser_sber_run_infinite():
     setup_logging()
-    load_env_vars()
 
     retry = Retry(function=runner, error=Exception, max_attempts=3)
     while 1:

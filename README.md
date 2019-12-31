@@ -61,8 +61,15 @@ HOURS # period in hours to indicate parser restart. Can be used with DAYS.
 ```
 If any of their not set - used 1 day by default
 
-#### Run
+## Linux example
 ```bash
+export LOGIN=login
+export PASSWORD=password
+export SERVER_URL=localhost
+export SERVER_PORT=8080
+export SEND_ACCOUNT_URL=/send_account
+export SEND_PAYMENT_URL=/send_payment
+
 py_parser_sber_run_once # for one-time launch
 # or
 py_parser_sber_run_infinite # for run in loop with a given period
