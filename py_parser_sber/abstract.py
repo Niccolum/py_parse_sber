@@ -2,6 +2,7 @@ import abc
 import uuid
 import json
 import time
+import socket
 from typing import Optional, Iterator, Dict, Type, Union, List, ClassVar
 from collections import namedtuple
 import logging
@@ -124,7 +125,7 @@ class AbstractClientParser(abc.ABC):
         self._container: Dict[AbstractAccount, List[Optional[Type[AbstractTransaction]]]] = {}
         self.transactions_interval = transactions_interval
 
-        self.server_url = uri_validator(f'{server_scheme}://{server_url}:{server_port}')
+        self.server_url = uri_validator(f'{server_scheme}://{socket.gethostbyname(server_url)}:{server_port}')
         self.send_account_url = f'{self.server_url}{send_account_url}'
         self.send_payment_url = f'{self.server_url}{send_payment_url}'
 

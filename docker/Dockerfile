@@ -1,7 +1,7 @@
 FROM python:3.7
 
 RUN apt update && apt install -y python3 curl
-RUN pip3 install --no-cache-dir py-parser-sber==0.0.9 -U
+RUN pip3 install --no-cache-dir py-parser-sber==0.0.12 -U
 RUN pip3 freeze | grep py-parser-sber
 
 WORKDIR /opt/app

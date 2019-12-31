@@ -58,7 +58,7 @@ def uri_validator(x: str) -> str:
         logger.exception(err, exc_info=True)
         raise URLError('Bad URL') from err
     else:
-        need_url_parameters = ['scheme', 'netloc', 'path']
+        need_url_parameters = ['scheme', 'netloc']
         if not all(getattr(url_scheme, arg) for arg in need_url_parameters):
             logger.error(x)
             not_found_parameters = [f'{arg} not found' for arg in need_url_parameters
