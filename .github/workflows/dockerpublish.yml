@@ -15,4 +15,5 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         snapshot: true
+        registry: hub.docker.com
         dockerfile: docker/Dockerfile
