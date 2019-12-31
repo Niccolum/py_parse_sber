@@ -14,14 +14,14 @@ Python 3.6+
 
 The quick way:
 ```bash
-pip install py_parse_sber
+pip install py-parse-sber
 ```
 
 Desired way:
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install py_parse_sber
+pip install py-parse-sber
 ```
 
 ### Preparing:

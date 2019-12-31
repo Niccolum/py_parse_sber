@@ -5,4 +5,4 @@ RUN pip3 install --no-cache-dir py-parser-sber
 
 WORKDIR /opt/app
 
-CMD ["py_parser_sber_run_once"]
+CMD ["py_parser_sber_run_infinite"]
