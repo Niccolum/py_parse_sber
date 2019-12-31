@@ -39,7 +39,7 @@ setup(
     name="py_parser_sber",
     author="Nikolai Vidov",
     author_email="lastsal@mail.ru",
-    version='0.0.5',
+    version='0.0.6',
     description="Simple parser of Sberbank, using selenium",
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
@@ -48,6 +48,7 @@ setup(
     keywords="parser sber Sberbank ",
     platforms='any',
     packages=find_packages(exclude=('tests', 'docker')),
+    package_data={'py_parse_sber': ['logging.json']},
     include_package_data=True,
     entry_points={
         'console_scripts': [
