@@ -5,7 +5,7 @@ import logging
 
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException, SeleniumTimeoutException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException as SeleniumTimeoutException
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
@@ -128,7 +128,7 @@ class SberbankTransaction(AbstractTransaction):
                         function=wait_new_table,
                         error=SeleniumTimeoutException,
                         err_msg=(f'Error. WebDriver not found page with new transactions for timeout {TIMEOUT}.'
-                                         ' Please, check your network connection'),
+                                 ' Please, check your network connection'),
                         max_attempts=3
                         )
                     retry()

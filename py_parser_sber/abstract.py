@@ -12,7 +12,7 @@ from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
-from selenium.common.exceptions import SeleniumTimeoutException
+from selenium.common.exceptions import TimeoutException as SeleniumTimeoutException
 from selenium.webdriver.firefox.options import Options
 
 from py_parser_sber.utils import uri_validator, Retry
@@ -153,7 +153,7 @@ class AbstractClientParser(abc.ABC):
             function=main_logic,
             error=SeleniumTimeoutException,
             err_msg=(f'Error. Old url: {current_url} has not changed to '
-                             f'{self.driver.current_url} with timeout {TIMEOUT}'),
+                     f'{self.driver.current_url} with timeout {TIMEOUT}'),
             max_attempts=5
         )
         try:
@@ -161,7 +161,6 @@ class AbstractClientParser(abc.ABC):
         except SeleniumTimeoutException as exc:
             self.close()
             raise SeleniumTimeoutException from exc
-
 
     def get(self, url: str):
         def main_logic():
@@ -182,7 +181,6 @@ class AbstractClientParser(abc.ABC):
             logger.debug(exc, exc_info=True)
             self.close()
             raise SeleniumTimeoutException from exc
-
 
     @abc.abstractmethod
     def auth(self) -> None:

@@ -50,10 +50,7 @@ def py_parser_sber_run_once():
     load_env_vars()
 
     retry = Retry(function=runner, error=Exception, max_attempts=2)
-    try:
-        retry()
-    except Exception:
-        pass
+    retry()
 
 
 def py_parser_sber_run_infinite():

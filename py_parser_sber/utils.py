@@ -85,7 +85,8 @@ class Retry:
         self.err_msg = err_msg
         self.default_timeout = 1
         self.max_attempts = max_attempts
-        self.clear()
+        self.current_timeout = self.default_timeout
+        self.current_attempt = 1
 
     def __call__(self, *args, **kwargs):
         while 1:
