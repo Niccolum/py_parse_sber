@@ -123,8 +123,9 @@ class AbstractClientParser(abc.ABC):
         self._container: Dict[AbstractAccount, List[Optional[Type[AbstractTransaction]]]] = {}
         self.transactions_interval = transactions_interval
 
-        self.send_account_url = uri_validator(f'{server_url}{send_account_url}')
-        self.send_payment_url = uri_validator(f'{server_url}{send_payment_url}')
+        uri_validator(server_url)
+        self.send_account_url = f'{server_url}{send_account_url}'
+        self.send_payment_url = f'{server_url}{send_payment_url}'
 
     @staticmethod
     def _prepare_webdriver():
