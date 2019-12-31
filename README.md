@@ -47,13 +47,15 @@ which your web server will have to implement for accepting data correct.
 ```bash
 LOGIN  # your sberbank account login
 PASSWORD # your sberbank account password
-SERVER_URL # main URL where the data will be sent. Example: http://localhost:8080
+SERVER_URL # main URL where the data will be sent. Example: localhost (or service name in docker-compose.yml)
 SEND_ACCOUNT_URL # url 'path' part, where account information will be sent. Example: /send_account
 SEND_PAYMENT_URL # url 'path' part, where transaction information will be sent. Example: /send_payment
 ```
 
 #### Optional environment variables
 ```bash
+SERVER_SCHEME # Scheme of SERVER_URL, http/https. Default http
+SERVER_PORT # Port of SERVER_URL. Default 80
 DAYS # period in days to indicate parser restart. Can be used with HOURS.
 HOURS # period in hours to indicate parser restart. Can be used with DAYS.
 ```

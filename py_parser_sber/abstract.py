@@ -114,7 +114,8 @@ class AbstractClientParser(abc.ABC):
     main_page: str
 
     def __init__(self, login: str, password: str, transactions_interval: int,
-                 server_url: str, send_account_url: str, send_payment_url: str) -> None:
+                 server_url: str, server_scheme: str, server_port: str,
+                 send_account_url: str, send_payment_url: str) -> None:
 
         self.main_page = uri_validator(type(self).main_page)
         self.login = login
@@ -123,9 +124,9 @@ class AbstractClientParser(abc.ABC):
         self._container: Dict[AbstractAccount, List[Optional[Type[AbstractTransaction]]]] = {}
         self.transactions_interval = transactions_interval
 
-        uri_validator(server_url)
-        self.send_account_url = f'{server_url}{send_account_url}'
-        self.send_payment_url = f'{server_url}{send_payment_url}'
+        self.server_url = uri_validator(f'{server_scheme}://{server_url}:{server_port}')
+        self.send_account_url = f'{self.server_url}{send_account_url}'
+        self.send_payment_url = f'{self.server_url}{send_payment_url}'
 
     @staticmethod
     def _prepare_webdriver():

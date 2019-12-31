@@ -3,7 +3,6 @@ import datetime
 import string
 import logging
 import time
-import socket
 from urllib.parse import urlparse, parse_qsl
 from urllib.error import URLError
 from typing import Optional, Callable, List, Dict, Any
@@ -61,14 +60,11 @@ def uri_validator(x: str) -> str:
     else:
         need_url_parameters = ['scheme', 'netloc', 'path']
         if not all(getattr(url_scheme, arg) for arg in need_url_parameters):
-            try:
-                socket.gethostbyname(x)
-            except socket.gaierror:
-                logger.error(x)
-                not_found_parameters = [f'{arg} not found' for arg in need_url_parameters
-                                        if not getattr(url_scheme, arg)]
-                logger.error(f'Bad URL: {", ".join(not_found_parameters)}')
-                raise URLError('Bad URL')
+            logger.error(x)
+            not_found_parameters = [f'{arg} not found' for arg in need_url_parameters
+                                    if not getattr(url_scheme, arg)]
+            logger.error(f'Bad URL: {", ".join(not_found_parameters)}')
+            raise URLError('Bad URL')
         return x
 
 

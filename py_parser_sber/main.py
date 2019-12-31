@@ -32,6 +32,8 @@ def runner():
     need_data_for_start = {k.lower(): os.environ[k] for k in need_env_vars}
 
     need_data_for_start['transactions_interval'] = get_transaction_interval()
+    need_data_for_start['server_port'] = os.getenv('SERVER_PORT', 80)
+    need_data_for_start['server_scheme'] = os.getenv('SERVER_SCHEME', 'http')
 
     sber = SberbankClientParser(**need_data_for_start)
     try:
@@ -65,7 +67,7 @@ def py_parser_sber_run_infinite():
             hours = os.getenv("HOURS", 0)
             days = os.getenv("DAYS", 0 if hours else 1)
             logger.info(f'Waiting for a new transactions after {days} days and {hours} hours')
-            
+
             time.sleep(get_transaction_interval())
 
 
