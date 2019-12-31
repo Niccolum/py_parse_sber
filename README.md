@@ -59,7 +59,7 @@ SERVER_PORT # Port of SERVER_URL. Default 80
 DAYS # period in days to indicate parser restart. Can be used with HOURS.
 HOURS # period in hours to indicate parser restart. Can be used with DAYS.
 ```
-If any of their not set - used 1 day by default
+If any of their not set - used 1 day by default.
 
 ## Linux example
 ```bash
