@@ -62,6 +62,10 @@ def py_parser_sber_run_infinite():
         try:
             retry()
         finally:
+            hours = os.getenv("HOURS", 0)
+            days = os.getenv("DAYS", 0 if hours else 1)
+            logger.info(f'Waiting for a new transactions after {days} days and {hours} hours')
+            
             time.sleep(get_transaction_interval())
 
 

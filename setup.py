@@ -39,7 +39,7 @@ setup(
     name="py_parser_sber",
     author="Nikolai Vidov",
     author_email="lastsal@mail.ru",
-    version='0.0.7',
+    version='0.0.8',
     description="Simple parser of Sberbank, using selenium",
     long_description=read('README.md'),
     long_description_content_type='text/markdown',

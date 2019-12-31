@@ -17,6 +17,8 @@ services:
       dockerfile: docker/Dockerfile
     env_file:
       - .env
+    environment:
+      SERVER_URL: mock_server
     volumes:
       - ./:/opt/app
     depends_on:
