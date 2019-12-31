@@ -11,10 +11,9 @@ jobs:
     - name: Publish to Registry
       uses: elgohr/Publish-Docker-Github-Action@master
       with:
-        name: niccolum/py_parse_sber/0.0.13
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-        registry: docker.pkg.github.com
+        name: niccolum/py_parse_sber/py_parse_sber
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
         snapshot: true
+        registry: docker.pkg.github.com
         dockerfile: docker/Dockerfile
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
