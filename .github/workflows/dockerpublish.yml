@@ -17,3 +17,4 @@ jobs:
         registry: docker.pkg.github.com
         snapshot: true
         dockerfile: docker/Dockerfile
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
