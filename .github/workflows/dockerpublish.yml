@@ -12,8 +12,7 @@ jobs:
       uses: elgohr/Publish-Docker-Github-Action@master
       with:
         name: niccolum/py_parse_sber/py_parse_sber
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
         snapshot: true
-        registry: docker.pkg.github.com
         dockerfile: docker/Dockerfile

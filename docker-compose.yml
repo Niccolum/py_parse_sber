@@ -13,9 +13,7 @@ services:
       retries: 3
 
   py_parse_sber:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
+    image: niccolum/py_parse_sber/py_parse_sber:latest
     env_file:
       - .env
     environment:
