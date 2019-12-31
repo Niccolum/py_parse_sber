@@ -1,25 +1,29 @@
-import os
-from pathlib import Path
+"""Entry point of this module."""
+
 import json
-import time
 import logging
 import logging.config
+import os
+import time
+from pathlib import Path
 
-from py_parser_sber.utils import get_transaction_interval, Retry
 from py_parser_sber.sberbank_parse import SberbankClientParser
-
+from py_parser_sber.utils import (
+    Retry,
+    get_transaction_interval,
+)
 
 logger = logging.getLogger(__name__)
 
 
-def setup_logging(logging_path='logging.json'):
+def _setup_logging(logging_path='logging.json'):
     curr_dir = Path(__file__).resolve().parents[0]
     with curr_dir.joinpath(logging_path).open() as f:
         config = json.load(f)
     logging.config.dictConfig(config)
 
 
-def runner():
+def _runner():
     logger.info('Start parsing...')
     need_env_vars = ['LOGIN', 'PASSWORD', 'SERVER_URL', 'SEND_ACCOUNT_URL', 'SEND_PAYMENT_URL']
     need_data_for_start = {k.lower(): os.environ[k] for k in need_env_vars}
@@ -41,16 +45,18 @@ def runner():
 
 
 def py_parser_sber_run_once():
-    setup_logging()
+    """Entry point for run parsing once."""
+    _setup_logging()
 
-    retry = Retry(function=runner, error=Exception, max_attempts=2)
+    retry = Retry(function=_runner, error=Exception, max_attempts=2)
     retry()
 
 
 def py_parser_sber_run_infinite():
-    setup_logging()
+    """Entry point for run parsing after get_transaction_interval."""
+    _setup_logging()
 
-    retry = Retry(function=runner, error=Exception, max_attempts=3)
+    retry = Retry(function=_runner, error=Exception, max_attempts=3)
     while 1:
         try:
             retry()
