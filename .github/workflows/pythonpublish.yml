@@ -1,19 +1,27 @@
 name: Upload Python Package
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: [3.6, 3.7, 3.8, pypy3]
+
     steps:
     - uses: actions/checkout@v1
 
     - name: Set up Python
       uses: actions/setup-python@v1
-      with:
-        python-version: '3.x'
 
     - name: Install dependencies
       run: |
