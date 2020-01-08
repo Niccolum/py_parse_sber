@@ -9,12 +9,15 @@ on:
       - master
 
 jobs:
-  
+
   preparing:
     runs-on: ubuntu-latest
 
     steps:
        - uses: actions/checkout@master
+
+       - name: Get packages
+         run: apt install git
 
        - name: Get current token
          run: |
