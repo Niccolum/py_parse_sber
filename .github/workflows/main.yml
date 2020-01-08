@@ -16,6 +16,9 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
+      - name: Test
+        run: echo ${GITHUB_REF:10}
+
       - name: Save git tag to file VERSION
         run: |
           # command for working git tag
