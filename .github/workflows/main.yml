@@ -10,25 +10,18 @@ on:
 
 jobs:
 
-  preparing:
+  static-analysis:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
-
+        -
       - name: Get all tags
         run: |
           git fetch --depth=1 origin +ref/tags/*:refs/tags/*
           TAG=$(git tag)
           if [ -z "$TAG" ] then TAG=0.0.1 fi
           echo $TAG > VERSION
-
-  static-analysis:
-    needs: preparing
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
 
       - name: Set up Python
         uses: actions/setup-python@v1
