@@ -16,12 +16,8 @@ jobs:
     steps:
        - uses: actions/checkout@master
 
-       - name: Get packages
-         run: sudo apt install git
-
        - name: Get current token
-         run: |
-           git describe --tags `git rev-list --tags --max-count=1` > VERSION
+         run: ${GITHUB_REF/refs\/tags\//} > VERSION
 
   static-analysis:
     needs: preparing
