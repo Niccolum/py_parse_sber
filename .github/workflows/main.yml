@@ -30,12 +30,12 @@ jobs:
           python-version: 3.7
 
       - name: Install dependencies
-          run: |
-            python -m pip install -e .[static_analysis]
+        run: |
+          python -m pip install -e .[static_analysis]
 
       - name: Run static analysis
-          run: |
-            flake8
+        run: |
+          flake8
 
   git-push-save-tag:
     steps:
@@ -47,10 +47,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Save version to file
-          run: |
-            TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
-            if [ -z "$TAG" ] then TAG=0.0.1 fi
-            echo -e "$TAG" > VERSION
+        run: |
+          TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+          if [ -z "$TAG" ] then TAG=0.0.1 fi
+          echo -e "$TAG" > VERSION
 
   python-publish:
     steps:
