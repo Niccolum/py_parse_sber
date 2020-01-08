@@ -1,38 +1,57 @@
-from typing import Optional, Iterator, Sequence, Type, Dict, Union
-import datetime
-from contextlib import suppress
-import logging
+"""
+Concrete implementation of entities from the module abstract.py.
 
-from selenium.webdriver.remote.webelement import WebElement
+Using two type of Sberbank Accounts (card account and bank account), Sberbank Transaction and Sberbank Client.
+"""
+
+import datetime
+import logging
+from contextlib import suppress
+from typing import (
+    Dict,
+    Iterator,
+    Optional,
+    Sequence,
+    Type,
+    Union,
+)
+
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    TimeoutException as SeleniumTimeoutException,
+)
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException, TimeoutException as SeleniumTimeoutException
 from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support.ui import WebDriverWait
 
 from py_parser_sber.abstract import (
     AbstractAccount,
-    AbstractTransaction,
-    Transaction,
     AbstractClientParser,
-    TIMEOUT)
+    AbstractTransaction,
+    TIMEOUT,
+    Transaction,
+)
 from py_parser_sber.utils import (
+    Retry,
     check_authorization,
-    sber_time_format,
-    replace_formatter,
     currency_converter,
     get_query_attr,
-    Retry
+    replace_formatter,
+    sber_time_format,
 )
 
 
 logger = logging.getLogger(__name__)
 
 
-class AbstractSberbankAccount(AbstractAccount):
+class AbstractSberbankAccount(AbstractAccount):  # noqa H601
+    """Abstract implementation of AbstractAccount for Sberbank."""
 
     @classmethod
     def account_parser(cls, raw_account: WebElement) -> 'AbstractSberbankAccount':
+        """Parse SberbankAccount."""
         name = raw_account.find_element(By.XPATH, './/span[contains(@class, "titleBlock")]').get_attribute('title')
 
         url = raw_account.find_element(By.XPATH, './/div[contains(@class, "pruductImg")]/a').get_attribute("href")
@@ -47,21 +66,26 @@ class AbstractSberbankAccount(AbstractAccount):
         return cls(name=name, funds=funds, currency=currency, account_id=account_id)
 
 
-class SberbankBankAccount(AbstractSberbankAccount):
+class SberbankBankAccount(AbstractSberbankAccount):  # noqa H601
+    """Concrete implementation of AbstractSberbankAccount, for bank account."""
+
     acc_type = 'account'
 
 
-class SberbankCardAccount(AbstractSberbankAccount):
+class SberbankCardAccount(AbstractSberbankAccount):  # noqa H601
+    """Concrete implementation of AbstractSberbankAccount, for card account."""
+
     acc_type = 'card'
 
 
-class SberbankTransaction(AbstractTransaction):
+class SberbankTransaction(AbstractTransaction):  # noqa H601
+    """Concrete implementation of AbstractTransaction for Sberbank."""
 
     @classmethod
     def transaction_parser(
             cls, driver: WebDriver, account: AbstractAccount
     ) -> Iterator[Optional['SberbankTransaction']]:
-
+        """Parse Sberbank transaction."""
         transactions_table = driver.find_element(By.ID, 'simpleTable0')
 
         with suppress(NoSuchElementException):
@@ -130,7 +154,7 @@ class SberbankTransaction(AbstractTransaction):
                         err_msg=(f'Error. WebDriver not found page with new transactions for timeout {TIMEOUT}.'
                                  ' Please, check your network connection'),
                         max_attempts=3
-                        )
+                    )
                     retry()
             else:
                 logger.debug(f'return transactions {curr_day_transactions} for {prev_transaction_data}')
@@ -166,7 +190,8 @@ class SberbankTransaction(AbstractTransaction):
         return f'{time:%Y.%m.%d}'
 
 
-class SberbankClientParser(AbstractClientParser):
+class SberbankClientParser(AbstractClientParser):  # noqa H601
+    """Concrete implementation of AbstractClientParser for Sberbank."""
     main_page = "https://online.sberbank.ru/"
 
     def __init__(self, **kwargs):
@@ -174,9 +199,7 @@ class SberbankClientParser(AbstractClientParser):
         super(SberbankClientParser, self).__init__(**kwargs)
 
     def auth(self) -> None:
-        """
-        autheticate in sberbank-online
-        """
+        """Autheticate in sberbank-online."""
         self.get(self.main_page)
 
         def wait_auth_form():
@@ -234,11 +257,13 @@ class SberbankClientParser(AbstractClientParser):
         self._account_page_parser(text=text, account=account)
 
     def accounts_page_parser(self) -> None:
+        """Parse card and bank accounts."""
         self.__account_page_parser_bank_account()
         self.__account_page_parser_card_account()
 
     @check_authorization
     def transactions_pages_parser(self) -> None:
+        """Parse transaction from search transactions page."""
         # go to main page
         self.get(self.main_menu_link)
 
@@ -300,5 +325,6 @@ class SberbankClientParser(AbstractClientParser):
         filter_form.find_element(By.XPATH, transaction_form_button_xpath).click()
 
     def close(self) -> None:
+        """Adding logout for graceful shutdown."""
         super(SberbankClientParser, self).close()
         self.main_menu_link = None  # logout for check_authorization
