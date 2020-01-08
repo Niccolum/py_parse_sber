@@ -17,7 +17,7 @@ jobs:
        - uses: actions/checkout@master
 
        - name: Get packages
-         run: apt install git
+         run: sudo apt install git
 
        - name: Get current token
          run: |
