@@ -17,10 +17,12 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Get all tags
-        run: |
-          git fetch --depth=1 origin +ref/tags/*:refs/tags/* &&
-          TAG=$(git tag) &&
-          if [ -z "$TAG" ] then TAG=0.0.1 fi &&
+        run: git fetch --depth=1 origin +ref/tags/*:refs/tags/*
+
+      - name: Save latest tag
+        run:
+          TAG=$(git tag)
+          if [ -z "$TAG" ] then TAG=0.0.1 fi
           echo $TAG > VERSION
 
       - name: Set up Python
