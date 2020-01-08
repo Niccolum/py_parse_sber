@@ -21,8 +21,8 @@ jobs:
 
       - name: Save latest tag
         run:
-          TAG=$(git tag)
-          if [ -z "$TAG" ] then TAG=0.0.1 fi
+          TAG=$(git tag) &&
+          if [ -z "$TAG" ] then TAG=0.0.1 fi &&
           echo $TAG > VERSION
         shell: bash
 
