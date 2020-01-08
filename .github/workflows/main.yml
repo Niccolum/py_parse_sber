@@ -14,17 +14,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-     - uses: actions/checkout@master
+      - uses: actions/checkout@master
 
-     - name: Save git tag to  file VERSION
-       run: |
-         # command for working git tag
-         git rev-parse HEAD
-         # get tag
-         TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
-         if [ -z "$TAG" ] then TAG=0.0.1 fi
-         # write tag
-         echo -e "$TAG" > VERSION
+      - name: Save git tag to file VERSION
+        run: |
+          # command for working git tag
+          git rev-parse HEAD
+          # get tag
+          TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+          if [ -z "$TAG" ] then TAG=0.0.1 fi
+          # write tag
+          echo $TAG > VERSION
+        shell: bash
 
   static-analysis:
     needs: preparing
