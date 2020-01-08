@@ -20,7 +20,11 @@ jobs:
         run: git fetch --depth=1 origin +ref/tags/*:refs/tags/*
 
       - name: Save latest tag
-        run: TAG=$(git tag) && if [ -z "$TAG" ] then TAG=0.0.1 fi && echo "$TAG" > VERSION
+        run: |
+          TAG=$(git tag)
+          if [ -z "$TAG" ] then TAG=0.0.1 fi
+          echo "$TAG" > VERSION
+          EOF
         shell: bash
 
       - name: Set up Python
