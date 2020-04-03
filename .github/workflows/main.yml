@@ -66,11 +66,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Save version to file
+        id: get_version
         run: |
-          TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
-          if [ -z "$TAG" ] then TAG=0.0.1 fi
-          echo -e "$TAG" > VERSION
-        shell: bash
+          echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+          echo -e "${{ steps.get_version.outputs.VERSION }}" > VERSION
 
       - name: Install dependencies
         run: |
