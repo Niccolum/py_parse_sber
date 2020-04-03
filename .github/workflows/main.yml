@@ -68,9 +68,9 @@ jobs:
       - name: Save version to file
         id: get_version
         run: |
-          echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
-          echo ${{ steps.get_version.outputs.VERSION }}
-          echo -e "${{ steps.get_version.outputs.VERSION }}" > VERSION
+          echo $GITHUB_REF
+          TAG=$(echo $GITHUB_REF | cut -d / -f 3)
+          echo -e "$TAG" > VERSION
 
       - name: Install dependencies
         run: |
