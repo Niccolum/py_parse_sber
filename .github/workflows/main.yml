@@ -69,10 +69,7 @@ jobs:
       - name: Save version to file
         id: get_version
         run: |
-          echo $GITHUB_REF
-          echo ${{ steps.new_tag.outputs.new_tag }}
-          TAG=$(echo $GITHUB_REF | cut -d / -f 3)
-          echo -e "$TAG" > VERSION
+          echo -e "${{ steps.new_tag.outputs.new_tag }}" > VERSION
           cat VERSION
 
       - name: Install dependencies
