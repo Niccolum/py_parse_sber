@@ -61,6 +61,7 @@ jobs:
           python-version: 3.7
 
       - name: Bump version and push tag
+        id: new_tag
         uses: anothrNick/github-tag-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -69,8 +70,10 @@ jobs:
         id: get_version
         run: |
           echo $GITHUB_REF
+          echo ${{ steps.new_tag.outputs.new_tag }}
           TAG=$(echo $GITHUB_REF | cut -d / -f 3)
           echo -e "$TAG" > VERSION
+          cat VERSION
 
       - name: Install dependencies
         run: |
