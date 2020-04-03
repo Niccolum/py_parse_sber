@@ -6,6 +6,10 @@ It's simple parser of Sberbank, using selenium (firefox geckodriver), where you 
 and transactions for some period.
 
 ## Getting Started
+
+**For the program to work, you must disable two-factor authorization on the sberbank-online website, 
+otherwise the program will not work**
+
 ### Requirements
 
 Python 3.6+
@@ -74,6 +78,38 @@ py_parser_sber_run_once # for one-time launch
 # or
 py_parser_sber_run_infinite # for run in loop with a given period
 ```
+
+## Docker-compose example
+```bash
+$ cat .env
+```
+```.env
+LOGIN=<login>
+PASSWORD=<password>
+SERVER_URL=example.com
+SERVER_SCHEME=https
+SERVER_PORT=80
+SEND_ACCOUNT_URL=/send_account
+SEND_PAYMENT_URL=/send_payment
+DAYS=1
+```
+
+```bash
+$ cat docker-compose.yml
+```
+```yaml
+version: '3.4'
+
+services:
+  py_parse_sber:
+    image: niccolum/py_parse_sber/py_parse_sber:latest
+    env_file:
+      - .env
+    volumes:
+      - ./:/opt/app
+```
+
+Also see dev example [docker-compose.yml](https://github.com/Niccolum/py_parse_sber/blob/master/docker-compose.yml)
 
 ## Authors
 
