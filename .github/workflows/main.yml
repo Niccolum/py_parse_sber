@@ -27,7 +27,7 @@ jobs:
 
       - name: Run static analysis
         run: |
-          flake8 py_parser_sber
+          flake8
 
   vulnerability-check:
     runs-on: ubuntu-latest
@@ -48,8 +48,38 @@ jobs:
         run: |
           bandit -r py_parser_sber
 
+  functional-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -e .
+          python -m pip install -r tests/mock_server/requirements.txt
+          sudo apt-get update
+          sudo apt-get install docker docker-compose
+
+      - name: Run test
+        run: |
+          echo "LOGIN=${{ secrets.SBER_USERNAME }}" >> .env
+          echo "PASSWORD=${{ secrets.SBER_PASSWORD }}" >> .env
+          echo "SERVER_URL=localhost" >> .env
+          echo "SERVER_SCHEME=http" >> .env
+          echo "SERVER_PORT=8080" >> .env
+          echo "SEND_ACCOUNT_URL=/send_account" >> .env
+          echo "SEND_PAYMENT_URL=/send_payment" >> .env
+          echo "DAYS=1" >> .env
+          docker-compose up --build --abort-on-container-exit --exit-code-from py_parse_sber
+
   python-publish:
-    needs: [static-analysis, vulnerability-check]
+    needs: [static-analysis, vulnerability-check, functional-tests]
     runs-on: ubuntu-latest
 
     steps:
@@ -67,7 +97,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Save version to file
-        id: get_version
         run: |
           echo -e "${{ steps.new_tag.outputs.new_tag }}" > VERSION
           cat VERSION
