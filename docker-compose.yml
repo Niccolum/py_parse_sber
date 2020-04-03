@@ -21,6 +21,7 @@ services:
       - .env
     environment:
       SERVER_URL: mock_server
+    command: "py_parser_sber_run_once" # for dev use
     volumes:
       - ./:/opt/app
     depends_on:

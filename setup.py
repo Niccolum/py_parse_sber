@@ -1,7 +1,7 @@
 """Setup file for project."""
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 from setuptools import (
     find_packages,
@@ -24,6 +24,7 @@ def read(fname: str) -> str:
 
 
 def get_version():
+    """Read version from file or get test_name TEST_VERSION."""
     try:
         return read('VERSION')
     except FileNotFoundError:
