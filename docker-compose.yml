@@ -13,7 +13,10 @@ services:
       retries: 3
 
   py_parse_sber:
-    image: niccolum/py_parse_sber/py_parse_sber:latest
+    # image: niccolum/py_parse_sber/py_parse_sber:latest # for non-dev use
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
     env_file:
       - .env
     environment:
