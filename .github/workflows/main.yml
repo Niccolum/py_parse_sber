@@ -14,17 +14,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Get all tags
-        run: git fetch --depth=1 origin +ref/tags/*:refs/tags/*
-
-      - name: Save latest tag
-        run: |
-          TAG=$(git tag)
-          if [ -z "$TAG" ] then TAG=0.0.1 fi
-          echo "$TAG" > VERSION;
-
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
@@ -36,14 +25,36 @@ jobs:
 
       - name: Run static analysis
         run: |
-          flake8
+          flake8 py_parser_sber
 
-  git-push-save-tag:
-    needs: static-analysis
+  vulnerability-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -e .[vulnerability_check]
+
+      - name: Run vulnerability check
+        run: |
+          bandit -r py_parser_sber
+
+  python-publish:
+    needs: [static-analysis, vulnerability-check]
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@master
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
 
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@master
@@ -55,18 +66,6 @@ jobs:
           TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
           if [ -z "$TAG" ] then TAG=0.0.1 fi
           echo -e "$TAG" > VERSION
-
-  python-publish:
-    needs: [static-analysis, git-push-save-tag]
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@master
-
-      - name: Set up Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.7
 
       - name: Install dependencies
         run: |

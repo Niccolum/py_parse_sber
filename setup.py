@@ -1,12 +1,15 @@
 """Setup file for project."""
 
-import os
+from pathlib import Path
 import sys
 
 from setuptools import (
     find_packages,
     setup,
 )
+
+
+TEST_VERSION = '0.0.dev1'
 
 if sys.version_info < (3, 6):
     # python must be greater than 3.5 because of https://www.python.org/dev/peps/pep-0484/
@@ -16,8 +19,15 @@ if sys.version_info < (3, 6):
 
 def read(fname: str) -> str:
     """Read file starts from root directory."""
-    with open(os.path.join(os.path.dirname(__file__), fname)) as f:
+    with (Path(__file__).resolve().parent / fname).open() as f:
         return f.read()
+
+
+def get_version():
+    try:
+        return read('VERSION')
+    except FileNotFoundError:
+        return TEST_VERSION
 
 
 install_requires = [
@@ -57,6 +67,7 @@ tests_require = [
 
 extras_require = {
     'static_analysis': static_analysis_require,
+    'vulnerability_check': vulnerability_check_require,
     'docs': docs_require,
     'tests': tests_require,
 }
@@ -69,7 +80,7 @@ setup(
     name="py_parser_sber",
     author="Nikolai Vidov",
     author_email="lastsal@mail.ru",
-    version=read('VERSION'),
+    version=get_version(),
     description="Simple parser of Sberbank, using selenium",
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
@@ -78,7 +89,7 @@ setup(
     keywords="parser sber Sberbank ",
     platforms='any',
     packages=find_packages(exclude=('tests', 'docker')),
-    package_data={'': ['*.json']},
+    package_data={'': ['VERSION', '*.json', '*.yml', '*.md', '*.txt']},
     entry_points={
         'console_scripts': [
             'py_parser_sber_run_once = py_parser_sber.main:py_parser_sber_run_once',
@@ -90,7 +101,7 @@ setup(
     extras_require=extras_require,
     tests_require=tests_require,
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'Intended Audience :: End Users/Desktop',
         'License :: OSI Approved :: MIT License',
