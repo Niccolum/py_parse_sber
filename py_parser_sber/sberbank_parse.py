@@ -192,6 +192,7 @@ class SberbankTransaction(AbstractTransaction):  # noqa H601
 
 class SberbankClientParser(AbstractClientParser):  # noqa H601
     """Concrete implementation of AbstractClientParser for Sberbank."""
+
     main_page = "https://online.sberbank.ru/"
 
     def __init__(self, **kwargs):

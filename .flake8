@@ -1,8 +1,8 @@
 [flake8]
 max-line-length=120
-exclude=tests/*,test_venv,env
+exclude=tests/*,*venv,env
 max-complexity=10
-max-cognitive-complexity=12
+max-cognitive-complexity=15
 import-order-style=cryptography
 docstring-convention=pep257
 radon-max-cc=10
